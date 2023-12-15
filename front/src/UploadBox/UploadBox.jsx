@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Dropzone from "react-dropzone";
-import { callFunctionAsMemorized, getFileExtension, shortFileSize } from "../tools";
-import { toast } from "react-toastify";
+import { callFunctionAsMemorized, shortFileSize } from "../tools";
 
 import "./UploadBox.css";
 
@@ -21,7 +20,6 @@ const rejectStyle = {
 	borderColor: "#ff1744",
 };
 
-const acceptedFileExtensions = ['jpg', 'jpeg', 'png'];
 
 class UploadBox extends Component {
 	state = { files: [] };
