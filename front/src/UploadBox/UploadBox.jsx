@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import Dropzone from "react-dropzone";
 import { callFunctionAsMemorized, shortFileSize, trunctuate } from "../tools";
 import { Badge, Button, Spinner } from "react-bootstrap";
@@ -22,7 +22,7 @@ const rejectStyle = {
 };
 
 class UploadBox extends Component {
-	state = { files: [], loading: false, alerts: [] };
+	state = { files: [], loading: false, alerts: [], showUploadHistory: false, uploadButtonText: null };
 
 	getStyles(focused, accepted, rejected, dragging) {
 		return {
@@ -87,16 +87,13 @@ class UploadBox extends Component {
 			return state;
 		});
 		const alerts = [];
-
+		let index = 0, progress;
 		for (const file of this.state.files) {
 			try {
 				const { data, status, statusText } = await api.uploadImage(
 					file
 				);
-				if (status !== 201)
-					throw new Error(
-						`${status}: ${statusText}`
-					);
+				if (status !== 201) throw new Error(`${status}: ${statusText}`);
 				alerts.push({
 					variant: "success",
 					msg: `image: ${trunctuate(
@@ -104,29 +101,33 @@ class UploadBox extends Component {
 					)} ➛ uploaded successfully.`,
 				});
 				console.log(data);
+				progress = 100 * (++index) / this.state.files.length;
+				this.setState(state => {
+					state.uploadButtonText = `${progress.toFixed(2)} %`;
+					return state;
+				})
 			} catch (err) {
 				console.log(file.name, err);
 				alerts.push({
 					variant: "danger",
-					msg: `image: ${trunctuate(file.name)} ➛ Uploading failed; ${err}`,
+					msg: `image: ${trunctuate(
+						file.name
+					)} ➛ Uploading failed; ${err}`,
 				});
 			}
 		}
 
-		this.setState((state) => {
-			state.loading = false;
-			this.files = [];
-			return state;
-		});
 		this.setState({
 			loading: false,
 			files: [],
 			alerts,
+			showUploadHistory: true,
+			uploadButtonText: null
 		});
 	};
 
 	render() {
-		const { files, alerts, loading } = this.state;
+		const { files, alerts, loading, showUploadHistory, uploadButtonText } = this.state;
 		return (
 			// Note that there will be nothing logged when files are dropped
 			<Dropzone
@@ -194,8 +195,6 @@ class UploadBox extends Component {
 						</div>
 						<hr />
 
-						{Boolean(files?.length) &&
-							callFunctionAsMemorized(this.listFiles, files)}
 						{loading && (
 							<Spinner
 								className="mx-auto my-3"
@@ -205,15 +204,17 @@ class UploadBox extends Component {
 								<span className="sr-only">Uploading...</span>
 							</Spinner>
 						)}
+						{Boolean(files?.length) &&
+							callFunctionAsMemorized(this.listFiles, files)}
 
-						{Boolean(!loading && files?.length) && (
+						{Boolean((!loading || uploadButtonText) && files?.length) && (
 							<Button
 								variant="outline-success"
 								className="my-3 px-5 "
 								size="lg"
 								onClick={() => this.upload()}
 							>
-								Upload
+								{!uploadButtonText ? 'Upload' : uploadButtonText}
 							</Button>
 						)}
 						{Boolean(alerts?.length) &&
@@ -221,12 +222,20 @@ class UploadBox extends Component {
 								<Badge
 									key={idx}
 									style={{ fontSize: "1.5em" }}
-									className="my-3 text-wrap"
+									className="my-3 mx-3 text-wrap"
 									bg={alert.variant}
 								>
 									{alert.msg}
 								</Badge>
 							))}
+						<hr />
+						{showUploadHistory && (
+							<a href={api.routes.entities}
+								className="btn btn-primary btn-large btn-block my-3 px-5 "
+							>
+								Show Upload History
+							</a>
+						)}
 					</section>
 				)}
 			</Dropzone>

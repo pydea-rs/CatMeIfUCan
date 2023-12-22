@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import { Component, Fragment } from "react";
 import UploadBox from "./UploadBox/UploadBox";
 
 import api from "./api";
