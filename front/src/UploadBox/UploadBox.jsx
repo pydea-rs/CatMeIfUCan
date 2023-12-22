@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import Dropzone from "react-dropzone";
-import { callFunctionAsMemorized, shortFileSize } from "../tools";
-
+import { callFunctionAsMemorized, shortFileSize, trunctuate } from "../tools";
+import { Badge, Button, Spinner } from "react-bootstrap";
 import "./UploadBox.css";
+import api from "../api";
 
 const focusedStyle = {
 	borderColor: "#2196f3",
@@ -20,9 +21,8 @@ const rejectStyle = {
 	borderColor: "#ff1744",
 };
 
-
 class UploadBox extends Component {
-	state = { files: [] };
+	state = { files: [], loading: false, alerts: [] };
 
 	getStyles(focused, accepted, rejected, dragging) {
 		return {
@@ -47,17 +47,96 @@ class UploadBox extends Component {
 		</aside>
 	);
 
+	loadImages = (images, rejections) => {
+		this.setState({ loading: true });
+		const acceptedImages = images.filter((file) =>
+			file.type.includes("image/")
+		);
+		console.log(images, acceptedImages);
+		const { files } = this.state;
+		if (acceptedImages?.length) {
+			const alerts =
+				!rejections?.length && acceptedImages.length === images.length
+					? []
+					: [
+							{
+								variant: "warning",
+								msg: "Some of the files were not recognized as supported images!",
+							},
+					  ];
+			setTimeout(() => {
+				console.log(alerts);
+				this.setState({
+					files: [...files, ...acceptedImages],
+					loading: false,
+					alerts,
+				});
+			}, [1000]);
+		} else
+			this.setState({
+				files,
+				loading: false,
+				alerts: [
+					{ variant: "danger", msg: "No supported image found!" },
+				],
+			});
+	};
+	upload = async () => {
+		this.setState((state) => {
+			state.loading = true;
+			return state;
+		});
+		const alerts = [];
+
+		for (const file of this.state.files) {
+			try {
+				const { data, status, statusText } = await api.uploadImage(
+					file
+				);
+				if (status !== 201)
+					throw new Error(
+						`${status}: ${statusText}`
+					);
+				alerts.push({
+					variant: "success",
+					msg: `image: ${trunctuate(
+						file.name
+					)} ➛ uploaded successfully.`,
+				});
+				console.log(data);
+			} catch (err) {
+				console.log(file.name, err);
+				alerts.push({
+					variant: "danger",
+					msg: `image: ${trunctuate(file.name)} ➛ Uploading failed; ${err}`,
+				});
+			}
+		}
+
+		this.setState((state) => {
+			state.loading = false;
+			this.files = [];
+			return state;
+		});
+		this.setState({
+			loading: false,
+			files: [],
+			alerts,
+		});
+	};
+
 	render() {
+		const { files, alerts, loading } = this.state;
 		return (
 			// Note that there will be nothing logged when files are dropped
 			<Dropzone
-				accept={{'image/jpeg': ['.jpeg', '.png', '.jpg', '.gif']}}
-				// accept={{"image/jpg": []}}
-				onDrop={(files) => {
-					const acceptedFiles = files.filter(file => file.type.includes('image/'))
-					this.setState({ files: [...this.state.files, ...acceptedFiles] })
-				}
-
+				accept={{
+					"image/jpeg": [".jpeg", ".jpg"],
+					"image/png": [".png"],
+					"image/gif": [".gif"],
+				}}
+				onDrop={(files, rejections) =>
+					this.loadImages(files, rejections)
 				}
 			>
 				{({
@@ -68,7 +147,7 @@ class UploadBox extends Component {
 					isDragActive,
 					isDragReject,
 				}) => (
-					<section className="container">
+					<section className="container text-center">
 						<div
 							{...getRootProps({
 								className: "dropzone dz-box",
@@ -86,18 +165,68 @@ class UploadBox extends Component {
 							})}
 						>
 							<input {...getInputProps()} />
-							<p>
-								{!isDragActive
-									? "Drag some files here, or click to select files."
-									: "Now drop to upload to start uploading..."}
-							</p>
+
+							<>
+								{!isDragActive ? (
+									<i
+										className="fa fa-image"
+										style={{ fontSize: "15em" }}
+									>
+										<p style={{ fontSize: "16px" }}>
+											<br />
+											Drag some files here, or click to
+											select files.
+										</p>
+									</i>
+								) : (
+									<i
+										className="fa fa-dropbox"
+										style={{ fontSize: "15em" }}
+									>
+										<p style={{ fontSize: "16px" }}>
+											<br />
+											Now drop to upload to start
+											uploading...
+										</p>
+									</i>
+								)}
+							</>
 						</div>
 						<hr />
-						{Boolean(this.state.files?.length) &&
-							callFunctionAsMemorized(
-								this.listFiles,
-								this.state.files
-							)}
+
+						{Boolean(files?.length) &&
+							callFunctionAsMemorized(this.listFiles, files)}
+						{loading && (
+							<Spinner
+								className="mx-auto my-3"
+								animation="border"
+								role="status"
+							>
+								<span className="sr-only">Uploading...</span>
+							</Spinner>
+						)}
+
+						{Boolean(!loading && files?.length) && (
+							<Button
+								variant="outline-success"
+								className="my-3 px-5 "
+								size="lg"
+								onClick={() => this.upload()}
+							>
+								Upload
+							</Button>
+						)}
+						{Boolean(alerts?.length) &&
+							alerts.map((alert, idx) => (
+								<Badge
+									key={idx}
+									style={{ fontSize: "1.5em" }}
+									className="my-3 text-wrap"
+									bg={alert.variant}
+								>
+									{alert.msg}
+								</Badge>
+							))}
 					</section>
 				)}
 			</Dropzone>
