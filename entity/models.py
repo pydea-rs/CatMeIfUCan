@@ -8,8 +8,9 @@ class Entity(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} [{self.modify_date.strftime('%Y-%m-%d %H:%M')}]"
+        return f"{self.classification if self.classification else 'Unknown Entity'}[{self.date_modified.strftime('%Y-%m-%d %H:%M')}]"
 
     class Meta:
         verbose_name = 'Entity'
         verbose_name_plural = 'Entities'
+
