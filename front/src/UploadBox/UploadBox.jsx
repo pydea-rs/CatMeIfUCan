@@ -1,10 +1,9 @@
 import { Component, Fragment } from "react";
 import Dropzone from "react-dropzone";
 import { callFunctionAsMemorized, shortFileSize, trunctuate } from "../tools";
-import { Badge, Button, Col, Row, Spinner } from "react-bootstrap";
+import { Badge, Button, Spinner } from "react-bootstrap";
 import "./UploadBox.css";
 import api from "../api";
-import ClassificationCard from "../classification/ClassificationCard";
 import ClassificationList from "../classification/ClassificationList";
 
 const focusedStyle = {
@@ -57,7 +56,7 @@ class UploadBox extends Component {
     );
 
     loadImages = (images, rejections) => {
-        this.setState({ loading: true });
+        this.setState({ loading: true, recentUploadedEntities: [] });
         const acceptedImages = images.filter((file) =>
             file.type.includes("image/")
         );
@@ -91,17 +90,13 @@ class UploadBox extends Component {
             });
     };
     upload = async () => {
-        this.setState((state) => {
-            state.loading = true;
-            return state;
-        });
         const alerts = [
             {
                 variant: "info",
                 msg: "Uploading and classifying each image will take some time. Be Patient ...",
             },
         ];
-        this.setState({ alerts });
+        this.setState({ alerts, loading: true, uploadButtonText: '0.0 %'});
         let index = 0,
             progress;
         const recents = [];
@@ -142,14 +137,32 @@ class UploadBox extends Component {
             alerts,
             showUploadHistory: true,
             uploadButtonText: null,
-            recentUploadedEntities: recents,
         });
+        setTimeout(
+            () =>
+                this.setState({
+                    alerts: [
+                        {
+                            variant: "info",
+                            msg: "Classification Predictions:",
+                        },
+                    ],
+                    recentUploadedEntities: recents,
+                }),
+            [1000]
+        );
     };
 
     render() {
-        const { files, alerts, loading, showUploadHistory, uploadButtonText, recentUploadedEntities } =
-            this.state;
-        console.log(recentUploadedEntities)
+        const {
+            files,
+            alerts,
+            loading,
+            showUploadHistory,
+            uploadButtonText,
+            recentUploadedEntities,
+        } = this.state;
+        console.log(recentUploadedEntities);
         return (
             // Note that there will be nothing logged when files are dropped
             <Dropzone
@@ -265,7 +278,11 @@ class UploadBox extends Component {
                                 ))}
                             </Fragment>
                         )}
-                        { Boolean(recentUploadedEntities?.length) && <ClassificationList>{recentUploadedEntities}</ClassificationList>}
+                        {Boolean(recentUploadedEntities?.length) && (
+                            <ClassificationList>
+                                {recentUploadedEntities}
+                            </ClassificationList>
+                        )}
                         {showUploadHistory && (
                             <Fragment>
                                 <hr />
@@ -278,7 +295,6 @@ class UploadBox extends Component {
                                 </a>
                             </Fragment>
                         )}
-                        
                     </section>
                 )}
             </Dropzone>

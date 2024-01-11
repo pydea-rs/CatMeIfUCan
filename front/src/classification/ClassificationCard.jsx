@@ -5,22 +5,16 @@ import "./classification_styles.css"; // Import your custom CSS file
 class ClassificationCard extends Component {
     state = { imageSrc: null };
 
-    // componentDidUpdate(prevState, prevProps) {
-    //     if (prevProps.children !== this.props.children) {
-    //         console.log("Updated ClassificationCard");
-    //         console.log("Upldated ClassComp");
-    //         this.setState({ image: this.props?.children[0]?.image });
-    //     }
-    // }
     componentDidMount() {
-        console.log("Updated ClassificationCard");
-        console.log("Upldated ClassComp");
         this.setState({ image: this.props?.children[0]?.image });
     }
     render() {
         const { image } = this.state;
         const { children: predictions } = this.props;
+        const total = predictions.length ?? 0,
+            rows = Math.ceil(total / 4);
 
+        console.log(total, rows);
         return (
             <Row className="my-2 mx-1 classification-card">
                 <Col xs={3} className="image-column">
@@ -34,11 +28,27 @@ class ClassificationCard extends Component {
                     />
                 </Col>
                 <Col className="data-column">
-                    {predictions.map((row, index) => (
-                        <Row key={index} className="text-left data-row">
-                            {row.classification} : {row.probability}%
-                        </Row>
-                    ))}
+                    <Row>
+                        {Array(rows)
+                            .fill(0)
+                            .map((_, row) => (
+                                <Col key={row}>
+                                    {Array(row < rows - 1 ? 4 : total - 4 * row)
+                                        .fill(0)
+                                        .map((_, col) => (
+                                            <Row className="text-left data-row" key={col}>
+                                                {
+                                                    predictions[row * 4 + col]
+                                                        .classification
+                                                } : {predictions[
+                                                    row * 4 + col
+                                                ].probability.toFixed(4)}
+                                                %
+                                            </Row>
+                                        ))}
+                                </Col>
+                            ))}
+                    </Row>
                 </Col>
             </Row>
         );
