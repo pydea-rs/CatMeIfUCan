@@ -5,6 +5,7 @@ import { Badge, Button, Col, Row, Spinner } from "react-bootstrap";
 import "./UploadBox.css";
 import api from "../api";
 import ClassificationCard from "../classification/ClassificationCard";
+import ClassificationList from "../classification/ClassificationList";
 
 const focusedStyle = {
     borderColor: "#2196f3",
@@ -145,16 +146,10 @@ class UploadBox extends Component {
         });
     };
 
-    componentDidMount() {
-        (async() => {
-
-            const {data} = await api.getClassifications(33);
-            console.log(data);
-        }) ();
-    }
     render() {
         const { files, alerts, loading, showUploadHistory, uploadButtonText, recentUploadedEntities } =
             this.state;
+        console.log(recentUploadedEntities)
         return (
             // Note that there will be nothing logged when files are dropped
             <Dropzone
@@ -270,7 +265,7 @@ class UploadBox extends Component {
                                 ))}
                             </Fragment>
                         )}
-                        { Boolean(recentUploadedEntities?.length) && <CLassificationList>{recentUploadedEntities}</CLassificationList>}
+                        { Boolean(recentUploadedEntities?.length) && <ClassificationList>{recentUploadedEntities}</ClassificationList>}
                         {showUploadHistory && (
                             <Fragment>
                                 <hr />

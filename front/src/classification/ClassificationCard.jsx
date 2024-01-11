@@ -5,15 +5,18 @@ import "./classification_styles.css"; // Import your custom CSS file
 class ClassificationCard extends Component {
     state = { imageSrc: null };
 
-    componentDidUpdate(prevState, prevProps) {
-        if (prevProps.children !== this.props.children) {
-            console.log("Upldated ClassComp");
-            const { children: predictions } = this.props;
-
-            this.setState({ image: this.props?.children[0]?.image });
-        }
+    // componentDidUpdate(prevState, prevProps) {
+    //     if (prevProps.children !== this.props.children) {
+    //         console.log("Updated ClassificationCard");
+    //         console.log("Upldated ClassComp");
+    //         this.setState({ image: this.props?.children[0]?.image });
+    //     }
+    // }
+    componentDidMount() {
+        console.log("Updated ClassificationCard");
+        console.log("Upldated ClassComp");
+        this.setState({ image: this.props?.children[0]?.image });
     }
-
     render() {
         const { image } = this.state;
         const { children: predictions } = this.props;
@@ -31,9 +34,9 @@ class ClassificationCard extends Component {
                     />
                 </Col>
                 <Col className="data-column">
-                    {data.map((row, index) => (
+                    {predictions.map((row, index) => (
                         <Row key={index} className="text-left data-row">
-                            {row}
+                            {row.classification} : {row.probability}%
                         </Row>
                     ))}
                 </Col>
