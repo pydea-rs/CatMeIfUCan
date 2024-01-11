@@ -1,9 +1,10 @@
-import { Component } from "react";
+import { Component, Fragment } from "react";
 import Dropzone from "react-dropzone";
 import { callFunctionAsMemorized, shortFileSize, trunctuate } from "../tools";
-import { Badge, Button, Spinner } from "react-bootstrap";
+import { Badge, Button, Col, Row, Spinner } from "react-bootstrap";
 import "./UploadBox.css";
 import api from "../api";
+import ClassificationCard from "../classification/ClassificationCard";
 
 const focusedStyle = {
     borderColor: "#2196f3",
@@ -28,6 +29,7 @@ class UploadBox extends Component {
         alerts: [],
         showUploadHistory: false,
         uploadButtonText: null,
+        recentUploadedEntities: [], // list of id s
     };
 
     getStyles(focused, accepted, rejected, dragging) {
@@ -77,7 +79,7 @@ class UploadBox extends Component {
                     loading: false,
                     alerts,
                 });
-            }, [1000]);
+            }, [500]);
         } else
             this.setState({
                 files,
@@ -92,9 +94,16 @@ class UploadBox extends Component {
             state.loading = true;
             return state;
         });
-        const alerts = [];
+        const alerts = [
+            {
+                variant: "info",
+                msg: "Uploading and classifying each image will take some time. Be Patient ...",
+            },
+        ];
+        this.setState({ alerts });
         let index = 0,
             progress;
+        const recents = [];
         for (const file of this.state.files) {
             try {
                 const { data, status, statusText } = await api.uploadImage(
@@ -108,10 +117,12 @@ class UploadBox extends Component {
                     )} ➛ uploaded successfully.`,
                 });
                 console.log(data);
+                recents.push(data?.id);
+
                 progress = (100 * ++index) / this.state.files.length;
-                this.setState((state) => {
-                    state.uploadButtonText = `${progress.toFixed(2)} %`;
-                    return state;
+                this.setState({
+                    uploadButtonText: `${progress.toFixed(2)} %`,
+                    alerts,
                 });
             } catch (err) {
                 console.log(file.name, err);
@@ -123,18 +134,26 @@ class UploadBox extends Component {
                 });
             }
         }
-
+        alerts.splice(0, 1); // remove the first alert, that is Be Patient message!
         this.setState({
             loading: false,
             files: [],
             alerts,
             showUploadHistory: true,
             uploadButtonText: null,
+            recentUploadedEntities: recents,
         });
     };
 
+    componentDidMount() {
+        (async() => {
+
+            const {data} = await api.getClassifications(33);
+            console.log(data);
+        }) ();
+    }
     render() {
-        const { files, alerts, loading, showUploadHistory, uploadButtonText } =
+        const { files, alerts, loading, showUploadHistory, uploadButtonText, recentUploadedEntities } =
             this.state;
         return (
             // Note that there will be nothing logged when files are dropped
@@ -201,7 +220,6 @@ class UploadBox extends Component {
                                 )}
                             </>
                         </div>
-                        <hr />
 
                         {loading && (
                             <Spinner
@@ -212,43 +230,60 @@ class UploadBox extends Component {
                                 <span className="sr-only">Uploading...</span>
                             </Spinner>
                         )}
-                        {Boolean(files?.length) &&
-                            callFunctionAsMemorized(this.listFiles, files)}
+
+                        {Boolean(files?.length) && (
+                            <Fragment>
+                                <hr />
+                                {callFunctionAsMemorized(this.listFiles, files)}
+                            </Fragment>
+                        )}
 
                         {Boolean(
                             (!loading || uploadButtonText) && files?.length
                         ) && (
-                            <Button
-                                variant="outline-success"
-                                className="my-3 px-5 "
-                                size="lg"
-                                onClick={() => this.upload()}
-                            >
-                                {!uploadButtonText
-                                    ? "Upload"
-                                    : uploadButtonText}
-                            </Button>
-                        )}
-                        {Boolean(alerts?.length) &&
-                            alerts.map((alert, idx) => (
-                                <Badge
-                                    key={idx}
-                                    style={{ fontSize: "1.5em" }}
-                                    className="my-3 mx-3 text-wrap"
-                                    bg={alert.variant}
+                            <Fragment>
+                                <Button
+                                    variant="outline-success"
+                                    className="my-3 px-5 "
+                                    size="lg"
+                                    onClick={() => this.upload()}
                                 >
-                                    {alert.msg}
-                                </Badge>
-                            ))}
-                        <hr />
-                        {showUploadHistory && (
-                            <a
-                                href={api.routes.entities}
-                                className="btn btn-primary btn-large btn-block my-3 px-5 "
-                            >
-                                Show Upload History
-                            </a>
+                                    {!uploadButtonText
+                                        ? "Upload"
+                                        : uploadButtonText}
+                                </Button>
+                            </Fragment>
                         )}
+
+                        {Boolean(alerts?.length) && (
+                            <Fragment>
+                                <hr />
+                                {alerts.map((alert, idx) => (
+                                    <Badge
+                                        key={idx}
+                                        style={{ fontSize: "1.5em" }}
+                                        className="my-3 mx-3 text-wrap"
+                                        bg={alert.variant}
+                                    >
+                                        {alert.msg}
+                                    </Badge>
+                                ))}
+                            </Fragment>
+                        )}
+                        { Boolean(recentUploadedEntities?.length) && <CLassificationList>{recentUploadedEntities}</CLassificationList>}
+                        {showUploadHistory && (
+                            <Fragment>
+                                <hr />
+
+                                <a
+                                    href={api.routes.entities}
+                                    className="btn btn-primary btn-large btn-block my-3 px-5 "
+                                >
+                                    Show Upload History
+                                </a>
+                            </Fragment>
+                        )}
+                        
                     </section>
                 )}
             </Dropzone>

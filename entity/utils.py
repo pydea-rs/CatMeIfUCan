@@ -9,6 +9,7 @@ from keras.preprocessing import image
 
 
 def preprocess_image(image: str, size=224) -> np.ndarray:
+    '''Preprocess data for using in prediction algorythms'''
     img = load_img(image, target_size=(size, size))
     
     img_as_array = img_to_array(img)
@@ -18,6 +19,7 @@ def preprocess_image(image: str, size=224) -> np.ndarray:
     
     
 def predict_classification(input_image: np.ndarray|str, algorithm:str='resnet50', max_predictions: int=10):
+    '''Gets teh predriction of the image classification by the algorythm specified'''
     if isinstance(input_image, str):
         input_image = preprocess_image(input_image)
     algorithm = algorithm.lower()
@@ -31,3 +33,17 @@ def predict_classification(input_image: np.ndarray|str, algorithm:str='resnet50'
     decoded_predictions = decode_predictions(predictions, top=max_predictions)
     
     return decoded_predictions
+
+
+def extract_name_from_file(short_filename: str) -> str:
+    '''Extract the name without file extension.'''
+    i, length = 1, len(short_filename)
+    while i <= length and short_filename[-i] != '.':
+        i += 1
+    
+    return short_filename[:-i] if i < length else short_filename
+
+
+def CapitalizeFirstLetters(string: str, special_separator=None) -> str:
+    '''as the func name suggests, for instance, it converts 'this is a test' to 'This Is A Test' '''
+    return ' '.join([x.capitalize() for x in string.split(special_separator)])

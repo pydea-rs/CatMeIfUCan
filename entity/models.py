@@ -10,9 +10,12 @@ class Classification(models.Model):
     id = models.CharField(max_length=16, primary_key=True)  # provided by image-net
     title = models.CharField(max_length=64)    
     
+    def Title(self) -> str:
+        return utils.CapitalizeFirstLetters(self.title, '_')
+
     def __str__(self) -> str:
         # title provided by imagenet is lowercase and separated by underscores
-        return self.title.replace('_', ' ').capitalize()
+        return self.Title()
 
 
 # Create your models here.
@@ -30,7 +33,8 @@ class Entity(models.Model):
         verbose_name_plural = 'Entities'
 
     def save(self, *args, **kwargs) -> None:
-        self.name = self.image.name
+        
+        self.name = utils.extract_name_from_file(self.image.name)
         result = super().save(*args, **kwargs)
         try:
             top_predictions = utils.predict_classification(self.image.path)
