@@ -1,8 +1,7 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<h1>CategorizeMeIfYouCan<sub>Frontend</sub></h1>
+<h3>Designed by Reac.JS<h3>
+<hr />
+<p>* This React app uses its Django Backend endpoints to Upload and Categorize images.<p>
+<p>* After uploading image(s) to the its corresponding endpoint, It will try to predict the Category of each image.<p>
+<p>* Each image can have from 1 up to 10 predicted category, based on the Image clarity and its items inside.<p>
+<p>* Each category prediction is lsited below the uploaded image, with its correctness and accuracy percentage.<p>

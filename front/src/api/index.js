@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const root = "http://127.0.0.1:8000/",
+const root = "https://grateful-lake-plastic.glitch.me/",
     apiRoot = `${root}api/`,
     entitiesPath = `${apiRoot}entities/`,
     entityClassPath = `${apiRoot}predictions/entity/`;
