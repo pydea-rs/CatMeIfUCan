@@ -1,5 +1,5 @@
-<h1>CategorizeMeIfYouCan<sub>Frontend</sub></h1>
-<h3>Designed by Reac.JS<h3>
+<h1>CategorizeMeIfYouCan <sub><sub>Frontend</sub></sub></h1>
+<h3>Designed by React.JS<h3>
 <hr />
 <p>* This React app uses its Django Backend endpoints to Upload and Categorize images.<p>
 <p>* After uploading image(s) to the its corresponding endpoint, It will try to predict the Category of each image.<p>
