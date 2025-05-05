@@ -7,4 +7,4 @@
   <p> * After the computation is completed, it will inform the client with propper response [containing entity id in database] and then the forntend app will list all                 predictions related to that entity. </p>
 
 ## Demp:
-```https://pydea-rs.github.io/CatMeIfUCan/```
+Here is a quick demo: <a href="https://pydea-rs.github.io/CatMeIfUCan">GitPages Demo</a>```
